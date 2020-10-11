@@ -51,33 +51,32 @@ Navigate to the [main project page](https://github.com/hack4impact/flask-base) a
 ##### Clone the repository 
 
 ```
-$ git clone https://github.com/YOUR_USERNAME/REPO_NAME.git
-$ cd REPO_NAME
+$ sudo git clone https://github.com/voytecPL/roadrunners.git
+$ sudo chown -R ubuntu:ubuntu /srv/www/roadrunners/
+$ cd roadrunners
 ```
+
+requirements.txt
+psycopg2==2.8.3 => psycopg2==2.8.4
+
+##### Installing dependencies
+
+$ apt-get install python3-venv
+$ sudo apt-get install redis-server
+$ sudo apt-get install libpq-dev
+$ pip3 install wheel
+
+sudo apt-get install python3-pip
+
+sudo apt-get install ruby-full build-essential rubygems
 
 ##### Initialize a virtual environment
 
-Windows:
+Ubuntu 20.04:
 ```
-$ python3 -m venv venv
-$ venv\Scripts\activate.bat
-```
-
-Unix/MacOS:
-```
-$ python3 -m venv venv
+$ sudo python3 -m venv venv
 $ source venv/bin/activate
 ```
-Learn more in [the documentation](https://docs.python.org/3/library/venv.html#creating-virtual-environments).
-
-Note: if you are using a python before 3.3, it doesn't come with venv. Install [virtualenv](https://docs.python-guide.org/dev/virtualenvs/#lower-level-virtualenv) with pip instead.
-
-##### (If you're on a Mac) Make sure xcode tools are installed
-
-```
-$ xcode-select --install
-```
-
 ##### Add Environment Variables
 
 Create a file called `config.env` that contains environment variables. **Very important: do not include the `config.env` file in any commits. This should remain private.** You will manually maintain this file locally, and keep it in sync on your host.
@@ -119,41 +118,26 @@ Other useful variables include:
 ##### Install the dependencies
 
 ```
-$ pip install -r requirements.txt
+$ pip3 install -r requirements.txt
 ```
 
 ##### Other dependencies for running locally
 
 You need [Redis](http://redis.io/), and [Sass](http://sass-lang.com/). Chances are, these commands will work:
 
-
 **Sass:**
 
-```
-$ gem install sass
-```
+$ sudo apt-get install ruby-full build-essential rubygems
+$ sudo gem install sass
+
+or
+
+$ sudo apt-get install -y sass
 
 **Redis:**
 
-_Mac (using [homebrew](http://brew.sh/)):_
-
-```
-$ brew install redis
-```
-
-_Linux:_
-
-```
-$ sudo apt-get install redis-server
-```
-
-You will also need to install **PostgresQL**
-
-_Mac (using homebrew):_
-
-```
-brew install postgresql
-```
+ [Optional]
+ **PostgresQL**
 
 _Linux (based on this [issue](https://github.com/hack4impact/flask-base/issues/96)):_
 
@@ -165,13 +149,13 @@ sudo apt-get install libpq-dev
 ##### Create the database
 
 ```
-$ python manage.py recreate_db
+$ python3 manage.py recreate_db
 ```
 
 ##### Other setup (e.g. creating roles in database)
 
 ```
-$ python manage.py setup_dev
+$ python3 manage.py setup_dev
 ```
 
 Note that this will create an admin user with email and password specified by the `ADMIN_EMAIL` and `ADMIN_PASSWORD` config variables. If not specified, they are both `flask-base-admin@example.com` and `password` respectively.
@@ -179,7 +163,13 @@ Note that this will create an admin user with email and password specified by th
 ##### [Optional] Add fake data to the database
 
 ```
-$ python manage.py add_fake_data
+$ python3 manage.py add_fake_data
+```
+
+### Running with Gunicorn
+
+```
+$ gunicorn -b 0.0.0.0:8000 manage:app
 ```
 
 ## Running the app
@@ -189,8 +179,13 @@ $ source env/bin/activate
 $ honcho start -e config.env -f Local
 ```
 
-For Windows users having issues with binding to a redis port locally, refer to [this issue](https://github.com/hack4impact/flask-base/issues/132).
+## Databse
 
+```
+$ python manage.py db init
+$ python manage.py db migrate
+$ python manage.py db upgrade
+```
 
 ## Gettin up and running with Docker
 

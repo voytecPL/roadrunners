@@ -1,16 +1,17 @@
 from flask import url_for
 from flask_wtf import FlaskForm
 from wtforms import ValidationError
+from wtforms.ext.sqlalchemy.fields import QuerySelectField
 from wtforms.fields import (
     BooleanField,
     PasswordField,
     StringField,
     SubmitField,
 )
-from wtforms.fields.html5 import EmailField
-from wtforms.validators import Email, EqualTo, InputRequired, Length
-
-from app.models import User
+from wtforms.fields.html5 import EmailField, IntegerField
+from wtforms.validators import Email, EqualTo, InputRequired, Length, NumberRange
+from app import db
+from app.models import User, Sex
 
 
 class LoginForm(FlaskForm):
@@ -41,6 +42,13 @@ class RegistrationForm(FlaskForm):
             EqualTo('password2', 'Passwords must match')
         ])
     password2 = PasswordField('Confirm password', validators=[InputRequired()])
+    sex = QuerySelectField(
+        'Sex',
+        validators=[InputRequired()],
+        get_label='name',
+        query_factory=lambda: db.session.query(Sex).order_by('id'))
+    age = IntegerField('Age', validators=[InputRequired(), NumberRange(min=16, max=100)])
+    
     submit = SubmitField('Register')
 
     def validate_email(self, field):

@@ -1,22 +1,12 @@
 from flask_wtf import FlaskForm
 from wtforms import ValidationError
 from wtforms.ext.sqlalchemy.fields import QuerySelectField
-from wtforms.fields import (
-    PasswordField,
-    StringField,
-    SubmitField,
-)
-from wtforms.fields.html5 import EmailField
-from wtforms.validators import (
-    Email,
-    EqualTo,
-    InputRequired,
-    Length,
-)
-
+from wtforms.fields import PasswordField, StringField, SubmitField, FileField, TextAreaField
+from wtforms.fields.html5 import EmailField, IntegerField, DateField
+from wtforms.validators import Email, EqualTo, InputRequired, Length, NumberRange, Optional
 from app import db
-from app.models import Role, User
-
+from app.models import Role, User, Track
+from datetime import date
 
 class ChangeUserEmailForm(FlaskForm):
     email = EmailField(
@@ -72,3 +62,20 @@ class NewUserForm(InviteUserForm):
     password2 = PasswordField('Confirm password', validators=[InputRequired()])
 
     submit = SubmitField('Create')
+
+class NewTrackForm(FlaskForm):
+    name = StringField('Name', validators=[InputRequired(), Length(1, 200)])
+    description = TextAreaField('Description', validators=[Optional(), Length(0, 2000)])
+    distance = IntegerField('Distance [m]', validators=[InputRequired(), NumberRange(min=10, max=50000)])
+    active_from = DateField('Active from', validators=[InputRequired()], format='%Y-%m-%d', default=date.today)
+    active_to = DateField('Active to', validators=[InputRequired()], format='%Y-%m-%d', default=date.today)
+    picture_path = FileField('Track picture', validators=[InputRequired()])
+    submit = SubmitField('Add new track')
+
+    def validate_name(self, field):
+        if Track.query.filter_by(name=field.data).first():
+            raise ValidationError('Track with the name already exists.')
+
+    def validate_active_to(self, field):
+        if field.data < self.active_from.data:
+            raise ValidationError('"Active to" date must not be earlier than "Active from" date.')

@@ -8,7 +8,7 @@ from redis import Redis
 from rq import Connection, Queue, Worker
 
 from app import create_app, db
-from app.models import Role, User
+from app.models import Role, User, Sex
 from config import Config
 
 app = create_app(os.getenv('FLASK_CONFIG') or 'default')
@@ -57,36 +57,46 @@ def add_fake_data(number_users):
     """
     User.generate_fake(count=number_users)
 
+def create_dictionaries():
+    #Role
+    Role.insert_roles()
+    #Sex
+    all_sexes = Sex.query.all()
+    if len(all_sexes) == 0:
+        Sex.insert_sexes()
 
 @manager.command
 def setup_dev():
     """Runs the set-up needed for local development."""
+    create_dictionaries()
     setup_general()
 
 
 @manager.command
 def setup_prod():
     """Runs the set-up needed for production."""
+    create_dictionaries()
     setup_general()
 
 
 def setup_general():
     """Runs the set-up needed for both local development and production.
        Also sets up first admin user."""
-    Role.insert_roles()
     admin_query = Role.query.filter_by(name='Administrator')
-    if admin_query.first() is not None:
+    sex = Sex.query.filter_by(name=Config.ADMIN_SEX).first()
+    if admin_query.first() is not None and sex is not None:
         if User.query.filter_by(email=Config.ADMIN_EMAIL).first() is None:
             user = User(
-                first_name='Admin',
-                last_name='Account',
+                first_name=Config.ADMIN_FIRST_NAME,
+                last_name=Config.ADMIN_LAST_NAME,
+                sex=sex,
+                age=Config.ADMIN_AGE,
                 password=Config.ADMIN_PASSWORD,
                 confirmed=True,
                 email=Config.ADMIN_EMAIL)
             db.session.add(user)
             db.session.commit()
             print('Added administrator {}'.format(user.full_name()))
-
 
 @manager.command
 def run_worker():

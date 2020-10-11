@@ -25,6 +25,8 @@
         <tr><td>Full name</td><td>{{ '%s %s' % (user.first_name, user.last_name) }}</td></tr>
         <tr><td>Email address</td><td>{{ user.email }}</td></tr>
         <tr><td>Account type</td><td>{{ user.role.name }}</td></tr>
+        <tr><td>Sex</td><td>{{ user.sex.name }}</td></tr>
+        <tr><td>Age</td><td>{{ user.age }}</td></tr>
     </table>
 {% endmacro %}
 

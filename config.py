@@ -38,11 +38,20 @@ class Config:
     MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD')
     MAIL_DEFAULT_SENDER = os.environ.get('MAIL_DEFAULT_SENDER')
 
+    # File upload
+    UPLOAD_FOLDER = '/srv/www/roadrunners/app/static/tracks/'
+    ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
+    MAX_CONTENT_LENGTH = 2 * 1024 * 1024
+
     # Analytics
     GOOGLE_ANALYTICS_ID = os.environ.get('GOOGLE_ANALYTICS_ID', '')
     SEGMENT_API_KEY = os.environ.get('SEGMENT_API_KEY', '')
 
     # Admin account
+    ADMIN_FIRST_NAME = os.environ.get('ADMIN_FIRST_NAME')
+    ADMIN_LAST_NAME = os.environ.get('ADMIN_LAST_NAME')
+    ADMIN_SEX = os.environ.get('ADMIN_SEX')
+    ADMIN_AGE = os.environ.get('ADMIN_AGE')
     ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD', 'password')
     ADMIN_EMAIL = os.environ.get(
         'ADMIN_EMAIL', 'flask-base-admin@example.com')

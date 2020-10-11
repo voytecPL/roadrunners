@@ -26,6 +26,10 @@
             <h2 class="ui header">
                 Admin Dashboard
             </h2>
+            <h4 class="ui horizontal divider header">
+                <i class="user icon"></i>
+                Users
+            </h4>
             <div class="ui two column stackable grid">
                 {{ dashboard_option('Registered Users', 'admin.registered_users',
                                     description='View and manage user accounts', icon='users icon') }}
@@ -33,6 +37,16 @@
                                     description='Create a new user account', icon='add user icon') }}
                 {{ dashboard_option('Invite New User', 'admin.invite_user',
                                     description='Invites a new user to create their own account', icon='add user icon') }}
+            </div>
+            <h4 class="ui horizontal divider header">
+                <i class="retweet icon"></i>
+                Tracks
+            </h4>
+            <div class="ui two column stackable grid">
+                {{ dashboard_option('Created tracks', 'admin.created_tracks',
+                                    description='View and manage user accounts', icon='retweet icon') }}
+                {{ dashboard_option('Add New Track', 'admin.new_track',
+                                    description='Create new track', icon='plus icon') }}
             </div>
         </div>
     </div>
