@@ -56,6 +56,7 @@ class User(UserMixin, db.Model):
     role_id = db.Column(db.Integer, db.ForeignKey('roles.id'))
     age = db.Column(db.Integer, nullable=False)
     sex_id = db.Column(db.Integer, db.ForeignKey('sexes.id'), nullable=False)
+    activities = db.relationship('Activity', backref='user', lazy='dynamic')
 
     def __init__(self, **kwargs):
         super(User, self).__init__(**kwargs)

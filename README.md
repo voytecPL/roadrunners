@@ -169,7 +169,7 @@ $ python3 manage.py add_fake_data
 ### Running with Gunicorn
 
 ```
-$ gunicorn -b 0.0.0.0:8000 manage:app
+$ gunicorn -b 0.0.0.0:8000 -w 4 manage:app
 ```
 
 ## Running the app
@@ -186,6 +186,34 @@ $ python manage.py db init
 $ python manage.py db migrate
 $ python manage.py db upgrade
 ```
+
+## Getting up and running with supervisor
+
+Page is avaialble at: <https://roadrunners.jakubas.eu/>
+WiFi/LAN connection: <http://192.168.0.14:8000/>
+
+Configuring hosting:
+
+* sudo apt -y install supervisor
+
+```
+[program:roadrunners]
+command=/srv/www/roadrunners/venv/bin/gunicorn -b 0.0.0.0:8000 -w 4 manage:app
+directory=/srv/www/roadrunners
+user=ubuntu
+autostart=true
+autorestart=true
+stopasgroup=true
+killasgroup=true
+```
+
+* sudo supervisorctl reload
+
+* sudo supervisorctl stop roadrunners
+
+* sudo supervisorctl start roadrunners
+
+* sudo supervisorctl status roadrunners
 
 ## Gettin up and running with Docker
 

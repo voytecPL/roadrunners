@@ -7,3 +7,4 @@ from .user import *  # noqa
 from .miscellaneous import *  # noqa
 from .track import *
 from .sex import *
+from .activity import *

@@ -14,6 +14,7 @@ class Track(db.Model):
     owner = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     created_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     created = db.Column(db.DateTime(), nullable=False, default=datetime.utcnow)
+    activities = db.relationship('Activity', backref='track', lazy='dynamic')
 
     def formatted_date(self, input_date):
         return input_date.strftime("%Y-%m-%d")
