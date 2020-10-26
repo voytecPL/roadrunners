@@ -1,0 +1,73 @@
+{% extends 'layouts/base.html' %}
+
+{% block content %}
+    <div class="ui stackable grid container">
+        <div class="sixteen wide tablet twelve wide computer centered column">
+            <h2 class="ui header">
+                All tracks and recorded activities
+                <div class="sub header">
+                    Here you should find all available tracks and activities recorded for them
+                </div>
+            </h2>
+
+            {% for track in tracks | sort(attribute='name') %}
+                <h4 class="ui horizontal divider header">
+                    <i class="retweet icon"></i>
+                    {{ track.formatted_name() }}
+                </h4>
+                
+                <div class="ui menu">
+                    <div class="ui search left item">
+                        <div class="ui transparent icon input">
+                            <input id="general-search" type="text" placeholder="Search …">
+                            <i class="search icon"></i>
+                        </div>
+                    </div>
+                </div>
+
+                {# Use overflow-x: scroll so that mobile views don't freak out
+                # when the table is too wide #}
+                <div style="overflow-x: scroll;">
+                    <table class="ui searchable sortable unstackable selectable celled table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Sex</th>
+                                <th>Age</th>
+                                <th class="sorted ascending">Result</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for activity in activities | sort(attribute='name') %}
+                                <tr>
+                                    <td>{{ activity.user.full_name() }}</td>
+                                    <td>{{ activity.user.sex.code }}</td>
+                                    <td>{{ activity.user.age }}</td>
+                                    <td>{{ activity.duration }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% endfor %}
+
+        </div>
+    </div>
+
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $('#general-search').keyup(function () {
+                var searchText = $(this).val();
+                if (searchText.length > 0) {
+                    $('tbody td:icontains(' + searchText + ')').addClass('positive');
+                    $('td.positive').not(':icontains(' + searchText + ')').removeClass('positive');
+                    $('tbody td').not(':icontains(' + searchText + ')').closest('tr').addClass('hidden').hide();
+                    $('tr.hidden:icontains(' + searchText + ')').removeClass('hidden').show();
+                } else {
+                    $('td.positive').removeClass('positive');
+                    $('tr.hidden').removeClass('hidden').show();
+                }
+            });
+        });
+    </script>
+{% endblock %}

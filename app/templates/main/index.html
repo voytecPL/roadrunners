@@ -1,6 +1,96 @@
 {% extends 'layouts/base.html' %}
+{% import 'macros/form_macros.html' as f %}
 
 {% block content %}
-    <div class="ui text container">
+    <div class="ui stackable grid container">
+        <div class="sixteen wide tablet twelve wide computer centered column">
+            <h2 class="ui header">
+                All tracks and recorded activities
+                <div class="sub header">
+                    Here you should find all available tracks and activities recorded for them
+                </div>
+            </h2>
+            
+            {% set flashes = {
+                'error':   get_flashed_messages(category_filter=['form-error']),
+                'warning': get_flashed_messages(category_filter=['form-check-email']),
+                'info':    get_flashed_messages(category_filter=['form-info']),
+                'success': get_flashed_messages(category_filter=['form-success'])
+            } %}
+
+            {{ f.form_message(flashes['error'], header='Something went wrong.', class='error') }}
+            {{ f.form_message(flashes['warning'], header='Check your email.', class='warning') }}
+            {{ f.form_message(flashes['info'], header='Information', class='info') }}
+            {{ f.form_message(flashes['success'], header='Success!', class='success') }}
+            
+            <div class="ui menu">
+                <div class="ui search left item">
+                    <div class="ui transparent icon input">
+                        <input id="general-search" type="text" placeholder="Search …">
+                        <i class="search icon"></i>
+                    </div>
+                </div>
+            </div>
+
+            {% for track in tracks %}
+                <!--
+                <h4 class="ui horizontal divider header">
+                    <i class="retweet icon"></i> {{ track.formatted_name() }}
+                </h4>
+                -->
+                <div class="ui tertiary segment">
+                    <i class="retweet icon"></i> {{ track.formatted_name() }}
+                </div>
+                
+                {# Use overflow-x: scroll so that mobile views don't freak out
+                # when the table is too wide #}
+                <div style="overflow-x: scroll;">
+                    <table class="ui searchable sortable unstackable selectable celled table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Gender</th>
+                                <th>Age</th>
+                                <th class="sorted ascending">Result</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for activity in activities %}
+                                {% if track.id == activity.track_id %}
+                                    {% if new_activity_id == activity.id %}
+                                        <tr class="active">
+                                    {% else %}
+                                        <tr>
+                                    {% endif %}
+                                        <td>{{ activity.user.full_name() }}</td>
+                                        <td>{{ activity.user.sex.code }}</td>
+                                        <td>{{ activity.user.age }}</td>
+                                        <td>{{ activity.formatted_duration() }}</td>
+                                    </tr>
+                                {% endif %}
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% endfor %}
+
+        </div>
     </div>
+
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $('#general-search').keyup(function () {
+                var searchText = $(this).val();
+                if (searchText.length > 0) {
+                    $('tbody td:icontains(' + searchText + ')').addClass('positive');
+                    $('td.positive').not(':icontains(' + searchText + ')').removeClass('positive');
+                    $('tbody td').not(':icontains(' + searchText + ')').closest('tr').addClass('hidden').hide();
+                    $('tr.hidden:icontains(' + searchText + ')').removeClass('hidden').show();
+                } else {
+                    $('td.positive').removeClass('positive');
+                    $('tr.hidden').removeClass('hidden').show();
+                }
+            });
+        });
+    </script>
 {% endblock %}

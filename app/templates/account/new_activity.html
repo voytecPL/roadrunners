@@ -7,13 +7,9 @@
 {% block content %}
     <div class="ui stackable centered grid container">
         <div class="twelve wide column">
-            <a class="ui basic compact button" href="{{ url_for('admin.index') }}">
-                <i class="caret left icon"></i>
-                Back to dashboard
-            </a>
             <h2 class="ui header">
-                Add New Track
-                <div class="sub header">Create a new track</div>
+                Add New Activity
+                <div class="sub header">Create completely new activity for selected track</div>
             </h2>
 
             {% set flashes = {
@@ -25,22 +21,19 @@
 
             {{ f.begin_form(form, flashes) }}
             
-                {{ f.render_form_field(form.name) }}
-                   
-                {{ f.render_form_field(form.description) }}
+                {{ f.render_form_field(form.track) }}
 
-                {{ f.render_form_field(form.distance) }}
-
-                <div class="two fields">
-                    {{ f.render_form_field(form.active_from) }}
-                    {{ f.render_form_field(form.active_to) }}
+                <div class="four fields">
+                    {{ f.render_form_field(form.start_time_local) }}
+                    {{ f.render_form_field(form.duration_hours) }}
+                    {{ f.render_form_field(form.duration_minutes) }}
+                    {{ f.render_form_field(form.duration_seconds) }}
                 </div>
 
-                {{ f.render_form_field(form.picture_path) }}
-                {{ f.render_form_field(form.allow_user_multiple_activities) }}
+                {{ f.render_form_field(form.gpx_file) }}
 
                 {{ f.form_message(flashes['error'], header='Something went wrong.', class='error') }}
-                {{ f.form_message(flashes['warning'], header='Check your track.', class='warning') }}
+                {{ f.form_message(flashes['warning'], header='Check your activity.', class='warning') }}
                 {{ f.form_message(flashes['info'], header='Information', class='info') }}
                 {{ f.form_message(flashes['success'], header='Success!', class='success') }}
 

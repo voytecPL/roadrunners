@@ -16,5 +16,11 @@ class Track(db.Model):
     created = db.Column(db.DateTime(), nullable=False, default=datetime.utcnow)
     activities = db.relationship('Activity', backref='track', lazy='dynamic')
 
+    def formatted_name(self):
+        if self.distance <= 1000:
+            return "{0} - {1} [m]".format(self.name, self.distance)
+        else:
+            return "{0} - {1} [km]".format(self.name, float(self.distance/1000))
+
     def formatted_date(self, input_date):
         return input_date.strftime("%Y-%m-%d")

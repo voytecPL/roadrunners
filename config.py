@@ -39,9 +39,11 @@ class Config:
     MAIL_DEFAULT_SENDER = os.environ.get('MAIL_DEFAULT_SENDER')
 
     # File upload
-    UPLOAD_FOLDER = '/srv/www/roadrunners/app/static/tracks/'
-    ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
-    MAX_CONTENT_LENGTH = 2 * 1024 * 1024
+    GPX_UPLOAD_FOLDER = os.environ.get('GPX_UPLOAD_FOLDER', '')
+    GPX_ALLOWED_EXTENSIONS = {'tcx'}
+    TRACK_UPLOAD_FOLDER = os.environ.get('TRACK_UPLOAD_FOLDER', '')
+    TRACK_IMAGE_ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
+    MAX_CONTENT_LENGTH = 15 * 1024 * 1024
 
     # Analytics
     GOOGLE_ANALYTICS_ID = os.environ.get('GOOGLE_ANALYTICS_ID', '')
@@ -56,8 +58,7 @@ class Config:
     ADMIN_EMAIL = os.environ.get(
         'ADMIN_EMAIL', 'flask-base-admin@example.com')
     EMAIL_SUBJECT_PREFIX = '[{}]'.format(APP_NAME)
-    EMAIL_SENDER = '{app_name} Admin <{email}>'.format(
-        app_name=APP_NAME, email=MAIL_USERNAME)
+    EMAIL_SENDER = '{app_name} Admin <{email}>'.format(app_name=APP_NAME, email=MAIL_DEFAULT_SENDER)
 
     REDIS_URL = os.getenv('REDISTOGO_URL', 'http://localhost:6379')
 
@@ -86,6 +87,7 @@ class DevelopmentConfig(Config):
     ASSETS_DEBUG = True
     SQLALCHEMY_DATABASE_URI = os.environ.get('DEV_DATABASE_URL',
         'sqlite:///' + os.path.join(basedir, 'data-dev.sqlite'))
+
 
     @classmethod
     def init_app(cls, app):

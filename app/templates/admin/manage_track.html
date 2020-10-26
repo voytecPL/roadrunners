@@ -27,6 +27,7 @@
         <tr><td>Active From</td><td>{{ track.formatted_date(track.active_from) }}</td></tr>
         <tr><td>Active To</td><td>{{ track.formatted_date(track.active_to) }}</td></tr>
         <tr><td>Created</td><td>{{ track.formatted_date(track.created) }}</td></tr>
+        <tr><td>Multiple actvivities</td><td>{% if track.allow_user_multiple_activities %}Yes{% else %}No{% endif %}</td></tr>
         <tr><td>Map</td><td><img src="{{ url_for('static', filename='tracks/') }}{{ track.picture_path }}" alt="{{ track.name }}" width="480"></td></tr>
     </table>
 {% endmacro %}

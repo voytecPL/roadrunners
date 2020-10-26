@@ -24,14 +24,14 @@ from app.admin.forms import (
 )
 from app.decorators import admin_required
 from app.email import send_email
-from app.models import EditableHTML, Role, User, Track
+from app.models import EditableHTML, Role, User, Track, Activity
 from werkzeug.utils import secure_filename
 
 admin = Blueprint('admin', __name__)
 
 def allowed_file(filename):
     return '.' in filename and \
-           filename.rsplit('.', 1)[1].lower() in current_app.config['ALLOWED_EXTENSIONS']
+           filename.rsplit('.', 1)[1].lower() in current_app.config['TRACK_IMAGE_ALLOWED_EXTENSIONS']
 
 @admin.route('/')
 @login_required
@@ -76,11 +76,12 @@ def invite_user():
         db.session.add(user)
         db.session.commit()
         token = user.generate_confirmation_token()
-        invite_link = url_for(
+        invite_link = os.environ.get('APP_URL','') + url_for(
             'account.join_from_invite',
             user_id=user.id,
-            token=token,
-            _external=True)
+            token=token
+            #_external=True
+            )
         get_queue().enqueue(
             send_email,
             recipient=user.email,
@@ -206,6 +207,7 @@ def update_editor_contents():
 
     return 'OK', 200
 
+# =========== Track ===========
 @admin.route('/new-track', methods=['GET', 'POST'])
 @login_required
 @admin_required
@@ -224,8 +226,8 @@ def new_track():
         if file and allowed_file(file.filename):
             filename = secure_filename(file.filename)
             file_name, file_extension = os.path.splitext(filename)
-            final_filename = secrets.token_hex(16) + '.' + file_extension
-            file.save(os.path.join(current_app.config['UPLOAD_FOLDER'], final_filename))
+            final_filename = secrets.token_hex(16) + file_extension
+            file.save(os.path.join(current_app.config['TRACK_UPLOAD_FOLDER'], final_filename))
         track = Track(
             name=form.name.data,
             description=form.description.data,
@@ -233,6 +235,7 @@ def new_track():
             active_from=form.active_from.data,
             active_to=form.active_to.data,
             picture_path=final_filename,
+            allow_user_multiple_activities=form.allow_user_multiple_activities.data,
             owner=current_user.id,
             created_by=current_user.id)
         db.session.add(track)
@@ -279,6 +282,7 @@ def delete_track_request(track_id):
 @admin_required
 def delete_track(track_id):
     """Delete a track."""
+    Activity.query.filter_by(track_id=track_id).delete()
     track = Track.query.filter_by(id=track_id).first()
     db.session.delete(track)
     db.session.commit()

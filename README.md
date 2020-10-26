@@ -176,7 +176,12 @@ $ gunicorn -b 0.0.0.0:8000 -w 4 manage:app
 
 ```
 $ source env/bin/activate
+
+DEBUG
 $ honcho start -e config.env -f Local
+
+PROD
+$ honcho start -e config.env
 ```
 
 ## Databse
@@ -196,6 +201,9 @@ Configuring hosting:
 
 * sudo apt -y install supervisor
 
+/etc/supervisor/conf.d
+sudo nano /etc/supervisor/conf.d/roadrunners.conf
+
 ```
 [program:roadrunners]
 command=/srv/www/roadrunners/venv/bin/gunicorn -b 0.0.0.0:8000 -w 4 manage:app
@@ -208,12 +216,41 @@ killasgroup=true
 ```
 
 * sudo supervisorctl reload
-
 * sudo supervisorctl stop roadrunners
-
 * sudo supervisorctl start roadrunners
-
 * sudo supervisorctl status roadrunners
+
+## Starting as group
+
+```
+[program:web-1]
+command=/srv/www/roadrunners/venv/bin/gunicorn -b 0.0.0.0:8000 -w 4 manage:app
+directory=/srv/www/roadrunners
+user=ubuntu
+autostart=true
+autorestart=true
+#stopasgroup=true
+#killasgroup=true
+stopsignal=QUIT
+stdout_logfile=/var/log/roadrunners/web-1.log
+stderr_logfile=/var/log/roadrunners/web-1.error.log
+
+[program:worker-1]
+command=/srv/www/roadrunners/venv/bin/python -u manage.py run_worker
+directory=/srv/www/roadrunners
+user=ubuntu
+autostart=true
+autorestart=true
+stopsignal=QUIT
+stdout_logfile=/var/log/roadrunners/worker-1.log
+stderr_logfile=/var/log/roadrunners/worker-1.error.log
+
+[group:roadrunners]
+programs=web-1,worker-1
+```
+
+* sudo supervisorctl start roadrunners:*
+* sudo supervisorctl restart roadrunners:*
 
 ## Gettin up and running with Docker
 

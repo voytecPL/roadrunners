@@ -7,11 +7,15 @@ from wtforms.fields import (
     PasswordField,
     StringField,
     SubmitField,
+    FileField,
+    TextAreaField,
+    SelectField
 )
-from wtforms.fields.html5 import EmailField, IntegerField
-from wtforms.validators import Email, EqualTo, InputRequired, Length, NumberRange
+from wtforms.fields.html5 import EmailField, IntegerField, DateField, DecimalField, TimeField
+from wtforms.validators import Email, EqualTo, InputRequired, Length, NumberRange, Optional
 from app import db
-from app.models import User, Sex
+from app.models import User, Sex, Activity, Track
+from datetime import date
 
 
 class LoginForm(FlaskForm):
@@ -125,3 +129,26 @@ class ChangeEmailForm(FlaskForm):
     def validate_email(self, field):
         if User.query.filter_by(email=field.data).first():
             raise ValidationError('Email already registered.')
+
+class NewActivityForm(FlaskForm):
+    #track = SelectField('Track', validators=[InputRequired()])
+    track = QuerySelectField(
+        'Track',
+        validators=[InputRequired()],
+        get_label='name',
+        #blank_text='Select a track...',
+        query_factory=lambda: db.session.query(Track).order_by('id'))
+    start_time_local = DateField('Date', validators=[InputRequired()], format='%Y-%m-%d', default=date.today())
+    duration_hours = IntegerField('Hours', validators=[InputRequired(), NumberRange(min=0, max=24)], default=0)
+    duration_minutes = IntegerField('Minutes', validators=[InputRequired(), NumberRange(min=0, max=59)], default=0)
+    duration_seconds = IntegerField('Seconds', validators=[InputRequired(), NumberRange(min=0, max=59)], default=0)
+    gpx_file = FileField('TCX file', validators=[Optional()])
+    submit = SubmitField('Add new Activity')
+
+    def validate_start_time_local(self, field):
+        if field.data > date.today():
+            raise ValidationError('"Date" must not be later than today\'s date.')
+    
+    #def validate_duration_seconds(self, field):
+    #    if self.duration_hours.data + self.duration_minutes.data + field.data == 0:
+    #        raise ValidationError('Activity duration must be greater than 0')

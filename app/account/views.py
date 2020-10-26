@@ -1,4 +1,8 @@
+import os
+import sys
+import secrets
 from flask import (
+    current_app,
     Blueprint,
     flash,
     redirect,
@@ -23,12 +27,17 @@ from app.account.forms import (
     RegistrationForm,
     RequestResetPasswordForm,
     ResetPasswordForm,
+    NewActivityForm
 )
 from app.email import send_email
-from app.models import User
+from app.models import User, Activity, Track
+from werkzeug.utils import secure_filename
 
 account = Blueprint('account', __name__)
 
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in current_app.config['GPX_ALLOWED_EXTENSIONS']
 
 @account.route('/login', methods=['GET', 'POST'])
 def login():
@@ -61,7 +70,7 @@ def register():
         db.session.add(user)
         db.session.commit()
         token = user.generate_confirmation_token()
-        confirm_link = url_for('account.confirm', token=token, _external=True)
+        confirm_link = os.environ.get('APP_URL','') + url_for('account.confirm', token=token) #, _external=True)
         get_queue().enqueue(
             send_email,
             recipient=user.email,
@@ -101,8 +110,8 @@ def reset_password_request():
         user = User.query.filter_by(email=form.email.data).first()
         if user:
             token = user.generate_password_reset_token()
-            reset_link = url_for(
-                'account.reset_password', token=token, _external=True)
+            reset_link = os.environ.get('APP_URL','') + url_for(
+                'account.reset_password', token=token) #, _external=True)
             get_queue().enqueue(
                 send_email,
                 recipient=user.email,
@@ -164,8 +173,8 @@ def change_email_request():
         if current_user.verify_password(form.password.data):
             new_email = form.email.data
             token = current_user.generate_email_change_token(new_email)
-            change_email_link = url_for(
-                'account.change_email', token=token, _external=True)
+            change_email_link = os.environ.get('APP_URL','') + url_for(
+                'account.change_email', token=token) #, _external=True)
             get_queue().enqueue(
                 send_email,
                 recipient=new_email,
@@ -199,7 +208,7 @@ def change_email(token):
 def confirm_request():
     """Respond to new user's request to confirm their account."""
     token = current_user.generate_confirmation_token()
-    confirm_link = url_for('account.confirm', token=token, _external=True)
+    confirm_link = os.environ.get('APP_URL','') + url_for('account.confirm', token=token) #, _external=True)
     get_queue().enqueue(
         send_email,
         recipient=current_user.email,
@@ -260,11 +269,12 @@ def join_from_invite(user_id, token):
         flash('The confirmation link is invalid or has expired. Another '
               'invite email with a new link has been sent to you.', 'error')
         token = new_user.generate_confirmation_token()
-        invite_link = url_for(
+        invite_link = os.environ.get('APP_URL','') + url_for(
             'account.join_from_invite',
             user_id=user_id,
-            token=token,
-            _external=True)
+            token=token
+            #_external=True
+            )
         get_queue().enqueue(
             send_email,
             recipient=new_user.email,
@@ -291,3 +301,51 @@ def unconfirmed():
     if current_user.is_anonymous or current_user.confirmed:
         return redirect(url_for('main.index'))
     return render_template('account/unconfirmed.html')
+
+# =========== Activity ===========
+@account.route('/new-activity', methods=['GET', 'POST'])
+@login_required
+def new_activity():
+    """Create a new activity."""
+    activity = None
+    gpx_file = None
+    tcx_file_name = None
+    form = NewActivityForm()
+    if form.validate_on_submit():
+        if 'gpx_file' in request.files:
+            file = request.files['gpx_file']
+            if file.filename != '':
+                if file and allowed_file(file.filename):
+                    filename = secure_filename(file.filename)
+                    file_name, file_extension = os.path.splitext(filename)
+                    final_filename = secrets.token_hex(16) + '_' + file_name + file_extension
+                    file.save(os.path.join(current_app.config['GPX_UPLOAD_FOLDER'], final_filename))
+                    tcx_file_name = final_filename
+                    f = open(os.path.join(current_app.config['GPX_UPLOAD_FOLDER'], final_filename),"rb")
+                    gpx_file = f.read()
+                    f.close()
+        track = form.track.data
+        activity_prev = Activity.query.filter_by(user_id = current_user.id, track_id = track.id).first()
+        if track.allow_user_multiple_activities is False and activity_prev:
+            flash('You have already added activity for this track. Duration: {0}'.format(activity_prev.formatted_duration()),'form-error')
+            return render_template('account/new_activity.html', form=form)
+        else:
+            activity = Activity(
+                user=current_user,
+                track=form.track.data,
+                name = tcx_file_name,
+                distance=form.track.data.distance,
+                start_time_local=form.start_time_local.data,
+                duration = form.duration_hours.data * 3600 + form.duration_minutes.data * 60 + form.duration_seconds.data,
+                gpx_file=gpx_file,
+                )
+            if activity.gpx_file:
+                activity.from_tcx_file()
+            db.session.add(activity)
+            db.session.commit()
+            flash('Activity successfully created','form-success')
+    if activity is not None:
+        db.session.refresh(activity)
+        return redirect(url_for('main.index', new_activity=activity.id))
+    else:
+        return render_template('account/new_activity.html', form=form)

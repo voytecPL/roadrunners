@@ -1,12 +1,12 @@
 from flask_wtf import FlaskForm
 from wtforms import ValidationError
 from wtforms.ext.sqlalchemy.fields import QuerySelectField
-from wtforms.fields import PasswordField, StringField, SubmitField, FileField, TextAreaField
+from wtforms.fields import PasswordField, StringField, SubmitField, FileField, TextAreaField, BooleanField
 from wtforms.fields.html5 import EmailField, IntegerField, DateField
 from wtforms.validators import Email, EqualTo, InputRequired, Length, NumberRange, Optional
 from app import db
 from app.models import Role, User, Track
-from datetime import date
+from datetime import date, timedelta
 
 class ChangeUserEmailForm(FlaskForm):
     email = EmailField(
@@ -67,9 +67,10 @@ class NewTrackForm(FlaskForm):
     name = StringField('Name', validators=[InputRequired(), Length(1, 200)])
     description = TextAreaField('Description', validators=[Optional(), Length(0, 2000)])
     distance = IntegerField('Distance [m]', validators=[InputRequired(), NumberRange(min=10, max=50000)])
-    active_from = DateField('Active from', validators=[InputRequired()], format='%Y-%m-%d', default=date.today)
-    active_to = DateField('Active to', validators=[InputRequired()], format='%Y-%m-%d', default=date.today)
+    active_from = DateField('Active from', validators=[InputRequired()], format='%Y-%m-%d', default=date.today())
+    active_to = DateField('Active to', validators=[InputRequired()], format='%Y-%m-%d', default=date.today() + timedelta(days=30))
     picture_path = FileField('Track picture', validators=[InputRequired()])
+    allow_user_multiple_activities = BooleanField('Allow user\'s multiple activities', default=False)
     submit = SubmitField('Add new track')
 
     def validate_name(self, field):
